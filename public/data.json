@@ -1,0 +1,92 @@
+[
+    {
+        "id": 1,
+        "imageFile": "cat.avif",
+        "prompt": "An anthropomorphic cat dressed in a teacher’s suit is instructing other animals in a classroom. The scene is realistic, with the cat sitting by the desk",
+        "detailsPath": "images/cat.avif"
+    },
+    {
+        "id": 234553,
+        "imageFile": "african.avif",
+        "prompt": "Serene cinematic high angel forced perspective of African American  woman in Erie lake",
+        "detailsPath": "images/african.avif"
+    },
+    {
+        "id": 24234,
+        "imageFile": "build.webp",
+        "prompt": "A modern abstract building facade with geometric shapes and patterns in shades of red , orange , and blue",
+        "detailsPath": "images/build.webp"
+    },
+    {
+        "id": 222445,
+        "imageFile": "inside.avif",
+        "prompt": "A colorful, abstract, and surreal interior space with a long hallway featuring arched ceilings and walls decorated with vibrant, organic shapes and patterns in shades of red, orange, yellow, and white",
+        "detailsPath": "images/inside.avif"
+    },
+    {
+        "id": 545782,
+        "imageFile": "japan.webp",
+        "prompt": "A futuristic cityscape at night...",
+        "detailsPath": "images/japan.webp"
+    },
+    {
+        "id": 59579,
+        "imageFile": "robot.webp",
+        "prompt": "Inside a tavern filled with robots holding cocktails in their hands and looking drunk",
+        "detailsPath": "images/robot.webp"
+    },
+    {
+        "id": 2433528,
+        "imageFile": "phones.avif",
+        "prompt": "A futuristic cityscape at night...",
+        "detailsPath": "images/phones.avif"
+    },
+    {
+        "id": 998989550,
+        "imageFile": "happy.avif",
+        "prompt": " A middle-aged woman with dark hair wearing large red sunglasses and an orange shirt against a blue background",
+        "detailsPath": "images/happy.avif"
+    },
+    {
+        "id": 9989658950,
+        "imageFile": "dog.avif",
+        "prompt": " A renaissance painting of a majestic beagle in a richly embroidered suit, standing proudly on a velvet cushion. The backdrop showcases a grand hall with elegant tapestries and soft candlelight., medium  body shot, mid distance subject wide shot",
+        "detailsPath": "images/dog.avif"
+    },
+    {
+        "id": 9989678950,
+        "imageFile": "tree.webp",
+        "prompt": "A vibrant, colorful tree with a large, fluffy pink and purple crown stands atop a mountainous landscape. The mountains in the background have a stylized, abstract shape with warm, vivid colors. A winding river flows through the foreground, adding to the fantastical, dreamlike atmosphere",
+        "detailsPath": "images/tree.webp"
+    },
+    {
+        "id": 998967089504,
+        "imageFile": "phones.avif",
+        "prompt": "A young Caucasian woman with short white hair wearing a green jacket and futuristic-looking headphones in a crowded urban setting",
+        "detailsPath": "images/phones.avif"
+    },
+    {
+        "id": 998967089508,
+        "imageFile": "surf.avif",
+        "prompt": "A young male surfer riding a large wave, with his arms outstretched and his body positioned low on the surfboard as he navigates the powerful, curling wave",
+        "detailsPath": "images/surf.avif"
+    },
+    {
+        "id": 9989670856950,
+        "imageFile": "wizard.webp",
+        "prompt": "Three hooded figures walking through a magical forest with glowing mushrooms and trees that are illuminated",
+        "detailsPath": "images/wizard.webp"
+    },
+    {
+        "id": 9989566708956570,
+        "imageFile": "japan.webp",
+        "prompt": "A young asian boy with short black hair wearing a white shirt, standing in a lush green garden with leaves and foliage in the background",
+        "detailsPath": "images/japan.webp"
+    },
+    {
+        "id": 99896708956570,
+        "imageFile": "banana.avif",
+        "prompt": "Ripe yellow bananas with water droplets on a teal background",
+        "detailsPath": "images/banana.avif"
+    }
+]
