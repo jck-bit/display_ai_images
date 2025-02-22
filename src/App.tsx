@@ -1,34 +1,71 @@
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import  { useEffect, useState } from 'react';
 import ImagePromptCard from './components/ImagePromptCard';
 
 interface ImageData {
   id: number;
-  imageFile: string;
+  image_url: string;
   prompt: string;
-  detailsPath: string;
 }
 
 const App = () => {
   const [images, setImages] = useState<ImageData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const response = await fetch('/data.json');
-        const result = await response.json();
-        setImages(result);
-      } catch (error) {
-        console.error('Error fetching data:', error);
+        const response = await fetch('https://replicate-images.vercel.app/images');
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(data);
+
+        if (data && data.images) {
+         
+          const flattenedImages: ImageData[] = [];
+          data.images.forEach((promptData: any) => { 
+            promptData.image_urls.forEach((imageUrl: string) => { 
+              flattenedImages.push({
+                id: promptData.id, 
+                prompt: promptData.prompt,
+                image_url: imageUrl,
+              });
+            });
+          });
+          setImages(flattenedImages); 
+        } else {
+          throw new Error('Invalid API response format: "images" array not found.');
+        }
+
+      } catch (error: any) {
+        console.error('Error fetching data from API:', error);
+        setError('Failed to load images. Please try again later.');
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
   }, []);
 
   const columnCount = 4;
-  const columns = Array.from({ length: columnCount }, (_, i) => 
+  const columns = Array.from({ length: columnCount }, (_, i) =>
     images.filter((_, index) => index % columnCount === i)
   );
+
+  if (loading) {
+    return <p>Loading images from API...</p>;
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
 
   return (
     <section className='py-6 pl-3 pr-3'>
@@ -38,9 +75,8 @@ const App = () => {
           {column.map((image) => (
             <div key={image.id} className="break-inside-avoid">
               <ImagePromptCard
-                imageFile={image.imageFile}
+                image_url={image.image_url} 
                 promptText={image.prompt}
-                detailsPath={image.detailsPath}
                 aspectRatio={`${Math.floor(Math.random() * 60 + 100)}%`}
               />
             </div>
@@ -51,6 +87,5 @@ const App = () => {
     </section>
   );
 };
-
 
 export default App;
