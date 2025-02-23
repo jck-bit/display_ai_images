@@ -66,7 +66,7 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
         throw new Error(`Failed to like image: ${response.status} - ${errorData?.message || 'Unknown error'}`);
       }
 
-      setIsLiked(true); // Update local state
+      setIsLiked(true);
       console.log("Image liked successfully");
     } catch (error: any) {
       console.error('Error liking image:', error);
@@ -123,7 +123,7 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
           src={image_url}
         />
 
-        <figcaption
+        {/* <figcaption
           className="_12jn0ku0 absolute inset-0 transition-opacity opacity-0 group-hover:opacity-100 text-white pointer-events-none rounded-lg bg-gradient-to-t from-black/60 via-black/40 to-transparent"
         >
           <div className="absolute bottom-0 left-0 w-full p-4 space-y-4">
@@ -137,7 +137,7 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
               </button>
             </div>
           </div>
-        </figcaption>
+        </figcaption> */}
         {deleteError && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
             <div className="bg-white p-4 rounded-md text-red-700">
