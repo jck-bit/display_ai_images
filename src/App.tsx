@@ -1,145 +1,103 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState, useCallback } from 'react';
-import ImagePromptCard from './components/ImagePromptCard';
-import SkeletonImageCard from './components/SkeletonImageCard';
-import { motion, AnimatePresence } from 'framer-motion'; 
+import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import { ImageDataProvider } from './context/ImageData';
+import { HomeIcon, HeartIcon } from 'lucide-react';
+import LikedImagesPage from './pages/LikedImages';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import React from 'react'; 
 
-interface ImageData {
-  id: number;
-  image_url: string;
-  prompt: string;
-  is_liked: boolean;
+const App: React.FC = () => {
+    return (
+        <ImageDataProvider>
+            <Router>
+                <Navbar />
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/liked" element={<LikedImagesPage />} />
+                </Routes>
+            </Router>
+        </ImageDataProvider>
+    );
+};
+
+const Navbar: React.FC = () => {
+    const location = useLocation();
+    const [isHover, setIsHover] = useState<string | null>(null);
+
+    const navItems = [
+        { path: "/", label: "Home", icon: HomeIcon },
+        { path: "/liked", label: "Liked", icon: HeartIcon },
+    ];
+
+    return (
+        <nav className="bg-transparent py-4 px-6 flex justify-between items-center" style={{ fontFamily: 'Raleway', fontWeight: 600 }}>
+            <span className="font-bold text-xl text-gray-800">
+                Image Gallery
+            </span>
+            <ul className="flex items-center space-x-6">
+                {navItems.map((item) => (
+                    <NavItem
+                        key={item.label}
+                        path={item.path}
+                        label={item.label}
+                        icon={item.icon}
+                        isActive={location.pathname === item.path}
+                        isHover={isHover === item.label}
+                        setIsHover={setIsHover}
+                    />
+                ))}
+            </ul>
+        </nav>
+    );
+};
+
+
+interface NavItemProps {
+    path: string;
+    label: string;
+    icon: React.ComponentType<{ size?: number, color?: string }>;
+    isActive: boolean;
+    isHover: boolean;
+    setIsHover: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-const App = () => {
-  const [images, setImages] = useState<ImageData[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch('https://replicate-images.vercel.app/images');
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status} (Images)`);
-      }
-
-      const data = await response.json();
-
-      if (data && data.images) {
-        const flattenedImages: ImageData[] = [];
-        data.images.forEach((promptData: any) => {
-          promptData.image_urls_data.forEach((imageUrlData: any) => {
-            flattenedImages.push({
-              id: promptData.id,
-              prompt: promptData.prompt,
-              image_url: imageUrlData.url,
-              is_liked: imageUrlData.is_liked || false,
-            });
-          });
-        });
-        setImages(flattenedImages);
-      } else {
-        throw new Error('Invalid API response format: "images" array not found.');
-      }
-
-
-    } catch (error: any) {
-      console.error('Error fetching data from API:', error);
-      setError('Failed to load images. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const handleImageDeleted = useCallback((deletedImageUrl: string) => {
-    const currentScrollY = window.scrollY;
-    setImages(currentImages => currentImages.filter(image => image.image_url !== deletedImageUrl));
-
-    window.scrollTo({ top: currentScrollY, behavior: 'smooth' });
-
-  }, []);
-
-
-  const columnCount = 4;
-  const columns = Array.from({ length: columnCount }, (_, i) =>
-    images.filter((_, index) => index % columnCount === i)
-  );
-
-  const renderSkeletonLoaders = () => {
-    const skeletonCount = 12;
-    const skeletonImages = Array.from({ length: skeletonCount }, (_, i) => ({ id: `skeleton-${i}` }));
-
-    const skeletonColumns = Array.from({ length: columnCount }, (_, i) =>
-      skeletonImages.filter((_, index) => index % columnCount === i)
-    );
-
+const NavItem: React.FC<NavItemProps> = ({ path, label, icon: Icon, isActive, isHover, setIsHover }) => {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 ">
-        {skeletonColumns.map((column, colIndex) => (
-          <div key={`skeleton-col-${colIndex}`} className="grid gap-4">
-            {column.map((skeleton) => (
-              <div key={skeleton.id} className="break-inside-avoid">
-                <SkeletonImageCard aspectRatio={`${Math.floor(Math.random() * 60 + 100)}%`}
-                />
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-
-  if (loading) {
-    return (
-      <section className='py-6 pl-3 pr-3'>
-        {renderSkeletonLoaders()}
-      </section>
-    );
-  }
-
-  if (error) {
-    return <p>Error: {error}</p>;
-  }
-
-  return (
-    <section className='py-6 pl-3 pr-3'>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 ">
-        <AnimatePresence 
-           mode='wait' 
+        <li
+            className="relative"
+            onMouseEnter={() => setIsHover(label)}
+            onMouseLeave={() => setIsHover(null)}
         >
-          {columns.map((column, colIndex) => (
-            <div key={colIndex} className="grid gap-4">
-              {column.map((image) => (
+            <Link
+                to={path}
+                className={`py-2 relative duration-300 transition-colors hover:!text-gray-800 flex items-center space-x-2 ${isActive ? '!text-gray-800' : 'text-gray-600'}`}
+                style={{ color: isActive ? "#374151" : "#6B7280" }}
+                aria-label={`Go to ${label} page`}
+            >
+                <Icon size={20} color={isActive ? "#374151" : "#6B7280"} />
+                <span className="hidden sm:inline-block">{label}</span>
                 <motion.div
-                  key={image.id}
-                  className="break-inside-avoid"
-                  layout 
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
-                >
-                  <ImagePromptCard
-                    image_url={image.image_url}
-                    promptText={image.prompt}
-                    aspectRatio={`${Math.floor(Math.random() * 60 + 100)}%`}
-                    onImageDeleted={handleImageDeleted}
-                    isLikedInitially={image.is_liked}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          ))}
-        </AnimatePresence>
-      </div>
-    </section>
-  );
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 origin-bottom-left"
+                    style={{
+                        zIndex: -1,
+                        borderRadius: '99px',
+                    }}
+                    layoutId="underline"
+                    initial={false}
+                    animate={{
+                        scaleX: (isActive || isHover) ? 1 : 0,
+                    }}
+                    transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20,
+                        duration: 0.2,
+                    }}
+                />
+            </Link>
+        </li>
+    );
 };
 
 export default App;
