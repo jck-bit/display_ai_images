@@ -9,7 +9,7 @@ interface SkeletonImageCardProps {
 const SkeletonImageCard: React.FC<SkeletonImageCardProps> = ({ aspectRatio = "128.636%" }) => { 
     return (
         <figure className="relative skeleton-card" style={{ paddingBottom: aspectRatio }}>
-            <figure className="relative skeleton-card" style={{ paddingBottom: "128.636%" }}>
+            <figure className="relative skeleton-card">
                 <div className="absolute top-0 left-0 w-full h-full bg-gray-200 rounded-lg overflow-hidden">
                     <div className="skeleton-shimmer-wrapper">
                         <div className="skeleton-shimmer-effect"></div>

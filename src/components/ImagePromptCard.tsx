@@ -20,9 +20,9 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
-  const [copySuccess, setCopySuccess] = useState<boolean>(false); // State for copy feedback
-  const copyTimeout = useRef<NodeJS.Timeout | null>(null); // useRef to hold timeout
-  const copyButtonRef = useRef<HTMLButtonElement>(null); // useRef for the button
+  const [copySuccess, setCopySuccess] = useState<boolean>(false); 
+  const copyTimeout = useRef<NodeJS.Timeout | null>(null); 
+  const copyButtonRef = useRef<HTMLButtonElement>(null); 
 
   useEffect(() => {
     setIsLiked(isLikedInitially);
@@ -144,14 +144,14 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
         <figcaption
           className="_12jn0ku0 absolute inset-0 transition-opacity opacity-0 group-hover:opacity-100 text-white pointer-events-none rounded-lg bg-gradient-to-t from-black/60 via-black/40 to-transparent"
         >
-          <div className="absolute bottom-0 left-0 w-full p-4 space-y-4">
-            <p className="text-white text-base leading-normal _12jn0ku1 overflow-hidden text-ellipsis nika-negative line-clamp-3" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical' }}> {/* Added line-clamp-3 and webkit styles */}
+          <div className="absolute bottom-0 left-0 w-full p-4 space-y-4" style={{ fontFamily: "Raleway"}}>
+            <p className="text-white text-base leading-normal _12jn0ku1 overflow-hidden text-ellipsis nika-negative line-clamp-3" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical',}}> 
               {promptText}
             </p>
             <div className="w-full">
               <button
                 ref={copyButtonRef}
-                className={`h-10 px-4 py-0 text-white flex items-center justify-center gap-2 cursor-pointer bg-transparent hover:bg-white/10 focus:bg-white/20 transition-all border border-solid rounded-full text-base font-semibold border-grayHeather pointer-events-auto relative ${copySuccess ? 'button-copied' : ''}`} // Apply class conditionally
+                className={`h-10 px-4 py-0 text-white flex items-center justify-center gap-2 cursor-pointer bg-transparent hover:bg-white/10 focus:bg-white/20 transition-all border border-solid rounded-full text-base font-semibold border-grayHeather pointer-events-auto relative ${copySuccess ? 'button-copied' : ''}`}
                 onClick={handleCopyToClipboard}
               >
                 <Copy size={24} color="#ffffff" />
