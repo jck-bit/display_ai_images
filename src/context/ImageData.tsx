@@ -4,6 +4,7 @@ import React, { createContext, useState, useCallback } from 'react';
 interface ImageData {
   id: number;
   image_url: string;
+  image_uuid: string; // Added image_uuid to interface
   prompt: string;
   is_liked: boolean;
 }
@@ -17,8 +18,9 @@ export interface ImageDataContextType {
   errorLiked: string | null;
   fetchHomeImages: () => Promise<void>;
   fetchLikedImages: (query?: string) => Promise<void>;
-  handleImageDeletedFromHome: (deletedImageUrl: string) => void;
-  handleImageDeletedFromLiked: (deletedImageUrl: string) => void;
+  handleImageDeletedFromHome: (deletedImageUuid: string) => void;
+  handleImageDeletedFromLiked: (deletedImageUuid: string) => void;
+  handleLikeUnlikeImage: (imageUuid: string, currentLikedStatus: boolean) => void;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -43,9 +45,9 @@ export const ImageDataProvider: React.FC<ImageDataProviderProps> = ({ children }
     setLoadingHome(true);
     setErrorHome(null);
     try {
-      const response = await fetch('https://replicate-images.vercel.app/images');
+      const response = await fetch('http://localhost:5000/images');
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status} (Images)`);
+        throw new Error(`HTTP error! status: ${response.status} (Home Images)`);
       }
       const data = await response.json();
       if (data && data.images) {
@@ -56,6 +58,7 @@ export const ImageDataProvider: React.FC<ImageDataProviderProps> = ({ children }
               id: promptData.id,
               prompt: promptData.prompt,
               image_url: imageUrlData.url,
+              image_uuid: imageUrlData.image_uuid,
               is_liked: imageUrlData.is_liked || false,
             });
           });
@@ -76,17 +79,21 @@ export const ImageDataProvider: React.FC<ImageDataProviderProps> = ({ children }
     setLoadingLiked(true);
     setErrorLiked(null);
     try {
-      const url = new URL('https://replicate-images.vercel.app/liked_images_list');
+      const url = new URL('http://localhost:5000/liked_images_list');
       if (query) {
         url.searchParams.append('search', query);
       }
       const response = await fetch(url.toString());
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status} (Liked Images Search)`);
+        throw new Error(`HTTP error! status: ${response.status} (Liked Images)`);
       }
       const data = await response.json();
       if (data && data.liked_images) {
-        setLikedImages(data.liked_images);
+        const likedImagesWithUuid = data.liked_images.map((likedImage: any) => ({
+          ...likedImage,
+          image_uuid: likedImage.image_uuid,
+        }));
+        setLikedImages(likedImagesWithUuid);
       } else {
         throw new Error('Invalid API response format: "liked_images" array not found in search response.');
       }
@@ -98,14 +105,49 @@ export const ImageDataProvider: React.FC<ImageDataProviderProps> = ({ children }
     }
   }, []);
 
-  const handleImageDeletedFromHome = useCallback((deletedImageUrl: string) => {
-    setHomeImages(currentImages => currentImages ? currentImages.filter(image => image.image_url !== deletedImageUrl) : []);
+  const handleImageDeletedFromHome = useCallback((deletedImageUuid: string) => {
+    setHomeImages(currentImages => currentImages ? currentImages.filter(image => image.image_uuid !== deletedImageUuid) : []);
   }, []);
 
-  const handleImageDeletedFromLiked = useCallback((deletedImageUrl: string) => {
-    setLikedImages(currentLikedImages => currentLikedImages ? currentLikedImages.filter(image => image.image_url !== deletedImageUrl) : []);
+  const handleImageDeletedFromLiked = useCallback((deletedImageUuid: string) => {
+    setLikedImages(currentLikedImages => currentLikedImages ? currentLikedImages.filter(image => image.image_uuid !== deletedImageUuid) : []);
   }, []);
 
+  const handleLikeUnlikeImage = useCallback(async (imageUuid: string, currentLikedStatus: boolean) => {
+    const endpoint = currentLikedStatus ? 'unlike_images' : 'liked_images';
+
+
+    try {
+      const response = await fetch(`http://localhost:5000/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_uuid: imageUuid }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to toggle like: ${response.status} - ${errorData?.message || 'Unknown error'}`);
+      }
+
+      setHomeImages(currentImages =>
+        currentImages ? currentImages.map(img =>
+          img.image_uuid === imageUuid ? { ...img, is_liked: !currentLikedStatus } : img
+        ) : null
+      );
+
+      setLikedImages(currentLikedImages =>
+        currentLikedImages ? currentLikedImages.map(img =>
+          img.image_uuid === imageUuid ? { ...img, is_liked: !currentLikedStatus } : img
+        ) : null
+      );
+
+
+    } catch (error: any) {
+      console.error('Error toggling like status:', error);
+      setErrorHome('Failed to update like status.');
+    }
+
+}, []);
 
   const value: ImageDataContextType = {
     homeImages,
@@ -118,6 +160,7 @@ export const ImageDataProvider: React.FC<ImageDataProviderProps> = ({ children }
     fetchLikedImages,
     handleImageDeletedFromHome,
     handleImageDeletedFromLiked,
+    handleLikeUnlikeImage, 
   };
 
   return (

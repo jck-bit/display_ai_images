@@ -58,13 +58,6 @@ const LikedImagesPage = () => {
 
   return (
     <section className='py-6 pl-3 pr-3'>
-      {/* <input
-        type="text"
-        placeholder="Search prompts..."
-        value="" 
-        onChange={handleSearchChange}
-        className="mb-4 p-2 border rounded w-full"
-      /> */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 ">
         <AnimatePresence mode="wait">
           {likedImages && likedImages.map((image) => ( 
@@ -76,11 +69,15 @@ const LikedImagesPage = () => {
               exit={{ opacity: 0, transition: { duration: 0.3 } }}
             >
               <ImagePromptCard
+                key={image.image_uuid}
+                image_uuid={image.image_uuid}
                 image_url={image.image_url}
                 promptText={image.prompt}
                 aspectRatio={`${Math.floor(Math.random() * 60 + 100)}%`}
                 onImageDeleted={handleImageDeleted}
                 isLikedInitially={true}
+              
+                
               />
             </motion.div>
           ))}
