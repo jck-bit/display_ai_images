@@ -1,0 +1,32 @@
+.button-copied {
+  background-color: rgba(255, 255, 255, 0.1); 
+ }
+
+.button-copied p {
+  opacity: 0.6; 
+}
+
+.transition-opacity {
+  transition-property: opacity;
+  transition-duration: 0.3s; 
+  transition-timing-function: ease-in-out; 
+}
+
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  20% { opacity: 1; } 
+  80% { opacity: 1; } 
+  100% { opacity: 0; }
+}
+
+.animate-fade-in-out {
+  animation: fadeInOut 2s ease-out forwards; 
+}
+
+  .line-clamp-3 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 3; 
+    line-clamp: 3; 
+  }

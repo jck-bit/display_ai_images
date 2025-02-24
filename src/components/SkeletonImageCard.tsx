@@ -3,10 +3,10 @@ import React from 'react';
 import './SkeletonImageCard.css';
 
 interface SkeletonImageCardProps {
-    aspectRatio?: string; // Make aspectRatio optional
+    aspectRatio?: string; 
 }
 
-const SkeletonImageCard: React.FC<SkeletonImageCardProps> = ({ aspectRatio = "128.636%" }) => { // Default aspect ratio
+const SkeletonImageCard: React.FC<SkeletonImageCardProps> = ({ aspectRatio = "128.636%" }) => { 
     return (
         <figure className="relative skeleton-card" style={{ paddingBottom: aspectRatio }}>
             <figure className="relative skeleton-card" style={{ paddingBottom: "128.636%" }}>

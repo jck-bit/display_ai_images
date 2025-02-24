@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Bookmark, Trash2 } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import { Bookmark, Copy, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react'; 
 
 interface ImagePromptCardProps {
   image_url: string;
   promptText: string;
   aspectRatio?: string;
   onImageDeleted: (imageUrl: string) => void;
-  isLikedInitially: boolean; 
+  isLikedInitially: boolean;
 }
 
 const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
@@ -15,14 +15,17 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
   promptText,
   aspectRatio = "128.636%",
   onImageDeleted,
-  isLikedInitially, 
+  isLikedInitially,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
+  const [copySuccess, setCopySuccess] = useState<boolean>(false); // State for copy feedback
+  const copyTimeout = useRef<NodeJS.Timeout | null>(null); // useRef to hold timeout
+  const copyButtonRef = useRef<HTMLButtonElement>(null); // useRef for the button
 
   useEffect(() => {
-    setIsLiked(isLikedInitially); 
+    setIsLiked(isLikedInitially);
   }, [isLikedInitially]);
 
   const handleDeleteImage = async () => {
@@ -70,9 +73,25 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
       console.log("Image liked successfully");
     } catch (error: any) {
       console.error('Error liking image:', error);
-      // Optional: Handle error
+      setDeleteError(error.message || 'Failed to like image.');}
+  };
+
+  const handleCopyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(promptText);
+      setCopySuccess(true);
+      if (copyTimeout.current) { 
+        clearTimeout(copyTimeout.current);
+      }
+      copyTimeout.current = setTimeout(() => { 
+        setCopySuccess(false);
+      }, 2000); 
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      setCopySuccess(false); 
     }
   };
+
 
   return (
     <figure className="relative" style={{ paddingBottom: aspectRatio }}>
@@ -106,7 +125,6 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
 
       <a
         className="group block rounded overflow-hidden absolute top-0 left-0 w-full h-full"
-        href="#"
       >
         <img
           alt={promptText}
@@ -123,21 +141,30 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
           src={image_url}
         />
 
-        {/* <figcaption
+        <figcaption
           className="_12jn0ku0 absolute inset-0 transition-opacity opacity-0 group-hover:opacity-100 text-white pointer-events-none rounded-lg bg-gradient-to-t from-black/60 via-black/40 to-transparent"
         >
           <div className="absolute bottom-0 left-0 w-full p-4 space-y-4">
-            <p className="text-white text-base leading-normal _12jn0ku1 overflow-hidden text-ellipsis nika-negative">
+            <p className="text-white text-base leading-normal _12jn0ku1 overflow-hidden text-ellipsis nika-negative line-clamp-3" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical' }}> {/* Added line-clamp-3 and webkit styles */}
               {promptText}
             </p>
             <div className="w-full">
               <button
-                className="h-10 px-4 py-0 text-white flex items-center justify-center gap-2 cursor-pointer bg-transparent hover:bg-white/10 focus:bg-white/20 transition-all border border-solid rounded-full text-base font-semibold border-grayHeather pointer-events-auto"
-              > Use this prompt
+                ref={copyButtonRef}
+                className={`h-10 px-4 py-0 text-white flex items-center justify-center gap-2 cursor-pointer bg-transparent hover:bg-white/10 focus:bg-white/20 transition-all border border-solid rounded-full text-base font-semibold border-grayHeather pointer-events-auto relative ${copySuccess ? 'button-copied' : ''}`} // Apply class conditionally
+                onClick={handleCopyToClipboard}
+              >
+                <Copy size={24} color="#ffffff" />
+                <p className="transition-opacity duration-300">{copySuccess ? "Copied!" : "copy this prompt"}</p> 
+                {copySuccess && (
+                  <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-green-500 rounded-full opacity-0 animate-fade-in-out text-white font-bold pointer-events-none">
+                    Copied!
+                  </div>
+                )}
               </button>
             </div>
           </div>
-        </figcaption> */}
+        </figcaption>
         {deleteError && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
             <div className="bg-white p-4 rounded-md text-red-700">
