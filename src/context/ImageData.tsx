@@ -4,7 +4,7 @@ import React, { createContext, useState, useCallback } from 'react';
 interface ImageData {
   id: number;
   image_url: string;
-  image_uuid: string; // Added image_uuid to interface
+  image_uuid: string; 
   prompt: string;
   is_liked: boolean;
 }
@@ -18,9 +18,9 @@ export interface ImageDataContextType {
   errorLiked: string | null;
   fetchHomeImages: () => Promise<void>;
   fetchLikedImages: (query?: string) => Promise<void>;
-  handleImageDeletedFromHome: (deletedImageUuid: string) => void;
   handleImageDeletedFromLiked: (deletedImageUuid: string) => void;
   handleLikeUnlikeImage: (imageUuid: string, currentLikedStatus: boolean) => void;
+  handleImageDeleted: (deletedImageUuid: string, imageListName: 'homeImages' | 'likedImages') => void;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -37,6 +37,7 @@ export const ImageDataProvider: React.FC<ImageDataProviderProps> = ({ children }
   const [loadingLiked, setLoadingLiked] = useState(false);
   const [errorHome, setErrorHome] = useState<string | null>(null);
   const [errorLiked, setErrorLiked] = useState<string | null>(null);
+  
 
   const fetchHomeImages = useCallback(async () => {
     if (homeImages) {
@@ -45,7 +46,7 @@ export const ImageDataProvider: React.FC<ImageDataProviderProps> = ({ children }
     setLoadingHome(true);
     setErrorHome(null);
     try {
-      const response = await fetch('http://localhost:5000/images');
+      const response = await fetch('https://replicate-images.vercel.app/images');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status} (Home Images)`);
       }
@@ -79,7 +80,7 @@ export const ImageDataProvider: React.FC<ImageDataProviderProps> = ({ children }
     setLoadingLiked(true);
     setErrorLiked(null);
     try {
-      const url = new URL('http://localhost:5000/liked_images_list');
+      const url = new URL('https://replicate-images.vercel.app/liked_images_list');
       if (query) {
         url.searchParams.append('search', query);
       }
@@ -105,10 +106,32 @@ export const ImageDataProvider: React.FC<ImageDataProviderProps> = ({ children }
     }
   }, []);
 
-  const handleImageDeletedFromHome = useCallback((deletedImageUuid: string) => {
-    setHomeImages(currentImages => currentImages ? currentImages.filter(image => image.image_uuid !== deletedImageUuid) : []);
-  }, []);
+  const handleImageDeleted = useCallback(async (deletedImageUuid: string, imageListName: 'homeImages' | 'likedImages') => {
+    try {
+      const response = await fetch('https://replicate-images.vercel.app/images', { 
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image_uuid: deletedImageUuid }),
+      });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to delete image: ${response.status} - ${errorData?.message || 'Unknown error'}`);
+      }
+      if (imageListName === 'homeImages') {
+        setHomeImages(currentImages => currentImages ? currentImages.filter(image => image.image_uuid !== deletedImageUuid) : []);
+      } else if (imageListName === 'likedImages') {
+        setLikedImages(currentLikedImages => currentLikedImages ? currentLikedImages.filter(image => image.image_uuid !== deletedImageUuid) : []);
+      }
+
+    } catch (error: any) {
+      console.error('Error deleting image from API:', error);
+      throw error;
+    }
+  }, []);
+  
   const handleImageDeletedFromLiked = useCallback((deletedImageUuid: string) => {
     setLikedImages(currentLikedImages => currentLikedImages ? currentLikedImages.filter(image => image.image_uuid !== deletedImageUuid) : []);
   }, []);
@@ -118,7 +141,7 @@ export const ImageDataProvider: React.FC<ImageDataProviderProps> = ({ children }
 
 
     try {
-      const response = await fetch(`http://localhost:5000/${endpoint}`, {
+      const response = await fetch(`https://replicate-images.vercel.app/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image_uuid: imageUuid }),
@@ -158,7 +181,7 @@ export const ImageDataProvider: React.FC<ImageDataProviderProps> = ({ children }
     errorLiked,
     fetchHomeImages,
     fetchLikedImages,
-    handleImageDeletedFromHome,
+     handleImageDeleted,
     handleImageDeletedFromLiked,
     handleLikeUnlikeImage, 
   };

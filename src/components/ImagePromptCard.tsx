@@ -1,119 +1,63 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Copy, Trash2, Heart } from 'lucide-react'; // Changed to Heart Icon
+import { Copy, Trash2, Heart } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 
 interface ImagePromptCardProps {
   image_url: string;
-  image_uuid: string; // Added image_uuid prop
+  image_uuid: string;
   promptText: string;
   aspectRatio?: string;
-  onImageDeleted: (imageUuid: string) => void; // Changed to use imageUuid
   isLikedInitially: boolean;
+  onDelete: (imageUuid: string) => Promise<void>; 
+  onLikeToggle: (imageUuid: string, currentLikedStatus: boolean) => Promise<void>; 
 }
 
 const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
   image_url,
-  image_uuid, // Destructured image_uuid
+  image_uuid,
   promptText,
   aspectRatio = "128.636%",
-  onImageDeleted,
   isLikedInitially,
+  onDelete, 
+  onLikeToggle
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(isLikedInitially); 
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const copyTimeout = useRef<NodeJS.Timeout | null>(null);
   const copyButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    setIsLiked(isLikedInitially);
+    setIsLiked(isLikedInitially); 
   }, [isLikedInitially]);
+
 
   const handleDeleteImage = async () => {
     setIsDeleting(true);
     setDeleteError(null);
+
     try {
-      const response = await fetch('http://localhost:5000/images', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ image_uuid: image_uuid }),
-      });
-
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Failed to delete image: ${response.status} - ${errorData?.message || 'Unknown error'}`);
-      }
-
-      onImageDeleted(image_uuid); // Changed to pass imageUuid to callback
+      await onDelete(image_uuid); // Call onDelete prop
     } catch (error: any) {
       console.error('Error deleting image:', error);
       setDeleteError(error.message || 'Failed to delete image.');
     } finally {
       setIsDeleting(false);
     }
+  };
 
-};
-
-  const handleLikeImage = async () => {
+  const handleToggleLike = async () => {
     try {
-      const response = await fetch('http://localhost:5000/liked_images', { // Changed endpoint
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ image_uuid: image_uuid }), // Changed to send image_uuid
-      });
-
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Failed to like image: ${response.status} - ${errorData?.message || 'Unknown error'}`);
-      }
-
-      setIsLiked(true);
-      console.log("Image liked successfully");
+      await onLikeToggle(image_uuid, isLiked); 
+      setIsLiked(!isLiked); 
+      console.log(isLiked ? "Image unliked successfully" : "Image liked successfully");
     } catch (error: any) {
-      console.error('Error liking image:', error);
-      setDeleteError(error.message || 'Failed to like image.');
-    }
-};
-
-  const handleUnlikeImage = async () => { // Added unlike handler
-    try {
-      const response = await fetch('https://replicate-images.vercel.app/unlike_images', { // Changed endpoint
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ image_uuid: image_uuid }), // Changed to send image_uuid
-      });
-
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Failed to unlike image: ${response.status} - ${errorData?.message || 'Unknown error'}`);
-      }
-
-      setIsLiked(false); // Update local state to unliked
-      console.log("Image unliked successfully");
-    } catch (error: any) {
-      console.error('Error unliking image:', error);
-      setDeleteError(error.message || 'Failed to unlike image.');
-    }
-
-};
-
-  const handleToggleLike = () => { // Toggle like/unlike
-    if (isLiked) {
-      handleUnlikeImage();
-    } else {
-      handleLikeImage();
+      console.error('Error toggling like status:', error);
+      setDeleteError(error.message || 'Failed to update like status.');
     }
   };
+
 
   const handleCopyToClipboard = async () => {
     try {
@@ -134,8 +78,6 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
   return (
     <figure className="relative" style={{ paddingBottom: aspectRatio }}>
       <div className="absolute top-2 right-2 z-10 flex flex-col space-y-2">
-
-
         <button
           className="rounded-full p-1 bg-red-200/50 hover:bg-red-300/70 text-red-700 hover:text-red-800 cursor-pointer"
           aria-label="Delete image"
@@ -154,12 +96,11 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
 
         <button
           className="rounded-full p-1 bg-gray-200/50 hover:bg-gray-300/70 text-gray-700 hover:text-gray-800 cursor-pointer"
-          aria-label={isLiked ? "Unlike image" : "Like image"} // Updated aria-label
-          onClick={handleToggleLike} // Changed to toggle function
+          aria-label={isLiked ? "Unlike image" : "Like image"}
+          onClick={handleToggleLike}
         >
-          <Heart size={23} color={isLiked ? "red" : "currentColor"} fill={isLiked ? "red" : "none"} /> {/* Changed to Heart and dynamic fill */}
+          <Heart size={23} color={isLiked ? "red" : "currentColor"} fill={isLiked ? "red" : "none"} />
         </button>
-
       </div>
 
       <a
@@ -213,8 +154,7 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
         )}
       </a>
     </figure>
-
-);
+  );
 };
 
 export default ImagePromptCard;

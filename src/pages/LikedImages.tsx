@@ -1,12 +1,33 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import ImagePromptCard from '../components/ImagePromptCard';
 import SkeletonImageCard from '../components/SkeletonImageCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useImageData } from '../hooks/useImageData'; 
 
+
+
 const LikedImagesPage = () => {
-  const { likedImages, loadingLiked, errorLiked, fetchLikedImages, handleImageDeletedFromLiked } = useImageData(); 
-//   const { fetchHomeImages } = useImageData(); 
+  const { likedImages, loadingLiked, errorLiked, fetchLikedImages, handleImageDeleted, handleLikeUnlikeImage  } = useImageData(); 
+  const scrollPositionRef = useRef(0); 
+
+const handleCardDelete = async (imageUuid: string) => {
+  scrollPositionRef.current = window.scrollY; 
+  try {
+    await handleImageDeleted(imageUuid, 'homeImages');
+  } catch (error) {
+    console.error("Error deleting image:", error);
+  }
+};
+
+
+const handleCardLikeToggle = async (imageUuid: string, currentLikedStatus: boolean) => {
+  scrollPositionRef.current = window.scrollY;
+  try {
+    await handleLikeUnlikeImage(imageUuid, currentLikedStatus);
+  } catch (error) {
+    console.error("Error toggling like status:", error);
+  }
+};
 
   useEffect(() => {
     if (!likedImages) { 
@@ -15,21 +36,12 @@ const LikedImagesPage = () => {
   }, [fetchLikedImages, likedImages]);
 
 
-  const handleImageDeleted = useCallback((deletedImageUrl: string) => {
-    handleImageDeletedFromLiked(deletedImageUrl);
-  }, [handleImageDeletedFromLiked]);
-
-
-  // const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const newSearchQuery = e.target.value;
-  //   fetchLikedImages(newSearchQuery);
-  // };
-
-
   const renderSkeletonLoaders = () => {
     const skeletonCount = 12;
     const skeletonImages = Array.from({ length: skeletonCount }, (_, i) => ({ id: `skeleton-${i}` }));
 
+
+  
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 ">
         {skeletonImages.map((skeleton) => (
@@ -55,14 +67,15 @@ const LikedImagesPage = () => {
     return <p>Error: {errorLiked}</p>;
   }
 
-
+  console.log("LikedImages Data:", likedImages);
+    
   return (
     <section className='py-6 pl-3 pr-3'>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 ">
         <AnimatePresence mode="wait">
           {likedImages && likedImages.map((image) => ( 
             <motion.div
-              key={image.id}
+              key={image.image_uuid}
               className="break-inside-avoid"
               layout
               initial={{ opacity: 1 }}
@@ -74,10 +87,9 @@ const LikedImagesPage = () => {
                 image_url={image.image_url}
                 promptText={image.prompt}
                 aspectRatio={`${Math.floor(Math.random() * 60 + 100)}%`}
-                onImageDeleted={handleImageDeleted}
                 isLikedInitially={true}
-              
-                
+                onDelete={handleCardDelete}
+                onLikeToggle={handleCardLikeToggle}
               />
             </motion.div>
           ))}
