@@ -54,18 +54,21 @@ const HomePage = () => {
         <AnimatePresence mode="wait">
           {homeImages && homeImages.map((image) => (
             <motion.div
-              key={image.id}
+              key={image.image_uuid}
               className="break-inside-avoid"
               layout
               initial={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0.3 } }}
             >
               <ImagePromptCard
-                image_url={image.image_url}
-                promptText={image.prompt}
-                aspectRatio={`${Math.floor(Math.random() * 60 + 100)}%`}
-                onImageDeleted={handleImageDeleted}
-                isLikedInitially={image.is_liked}
+               key={image.image_uuid}
+               image_url={image.image_url}
+               promptText={image.prompt}
+               aspectRatio={`${Math.floor(Math.random() * 60 + 100)}%`}
+               onImageDeleted={handleImageDeleted}
+               isLikedInitially={image.is_liked}
+               image_uuid={image.image_uuid}
+             
               />
             </motion.div>
           ))}

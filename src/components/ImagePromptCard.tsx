@@ -1,17 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Bookmark, Copy, Trash2 } from 'lucide-react';
-import React, { useState, useEffect, useRef } from 'react'; 
+import { Copy, Trash2, Heart } from 'lucide-react'; // Changed to Heart Icon
+import React, { useState, useEffect, useRef } from 'react';
 
 interface ImagePromptCardProps {
   image_url: string;
+  image_uuid: string; // Added image_uuid prop
   promptText: string;
   aspectRatio?: string;
-  onImageDeleted: (imageUrl: string) => void;
+  onImageDeleted: (imageUuid: string) => void; // Changed to use imageUuid
   isLikedInitially: boolean;
 }
 
 const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
   image_url,
+  image_uuid, // Destructured image_uuid
   promptText,
   aspectRatio = "128.636%",
   onImageDeleted,
@@ -20,9 +22,9 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
-  const [copySuccess, setCopySuccess] = useState<boolean>(false); 
-  const copyTimeout = useRef<NodeJS.Timeout | null>(null); 
-  const copyButtonRef = useRef<HTMLButtonElement>(null); 
+  const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const copyTimeout = useRef<NodeJS.Timeout | null>(null);
+  const copyButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setIsLiked(isLikedInitially);
@@ -32,37 +34,40 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
     setIsDeleting(true);
     setDeleteError(null);
     try {
-      const response = await fetch('https://replicate-images.vercel.app/images', {
+      const response = await fetch('http://localhost:5000/images', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ image_url: image_url }),
+        body: JSON.stringify({ image_uuid: image_uuid }),
       });
+
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(`Failed to delete image: ${response.status} - ${errorData?.message || 'Unknown error'}`);
       }
 
-      onImageDeleted(image_url);
+      onImageDeleted(image_uuid); // Changed to pass imageUuid to callback
     } catch (error: any) {
       console.error('Error deleting image:', error);
       setDeleteError(error.message || 'Failed to delete image.');
     } finally {
       setIsDeleting(false);
     }
-  };
+
+};
 
   const handleLikeImage = async () => {
     try {
-      const response = await fetch('https://replicate-images.vercel.app/liked_images', {
+      const response = await fetch('http://localhost:5000/liked_images', { // Changed endpoint
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ image_url: image_url }),
+        body: JSON.stringify({ image_uuid: image_uuid }), // Changed to send image_uuid
       });
+
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -73,29 +78,63 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
       console.log("Image liked successfully");
     } catch (error: any) {
       console.error('Error liking image:', error);
-      setDeleteError(error.message || 'Failed to like image.');}
+      setDeleteError(error.message || 'Failed to like image.');
+    }
+};
+
+  const handleUnlikeImage = async () => { // Added unlike handler
+    try {
+      const response = await fetch('https://replicate-images.vercel.app/unlike_images', { // Changed endpoint
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image_uuid: image_uuid }), // Changed to send image_uuid
+      });
+
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to unlike image: ${response.status} - ${errorData?.message || 'Unknown error'}`);
+      }
+
+      setIsLiked(false); // Update local state to unliked
+      console.log("Image unliked successfully");
+    } catch (error: any) {
+      console.error('Error unliking image:', error);
+      setDeleteError(error.message || 'Failed to unlike image.');
+    }
+
+};
+
+  const handleToggleLike = () => { // Toggle like/unlike
+    if (isLiked) {
+      handleUnlikeImage();
+    } else {
+      handleLikeImage();
+    }
   };
 
   const handleCopyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(promptText);
       setCopySuccess(true);
-      if (copyTimeout.current) { 
+      if (copyTimeout.current) {
         clearTimeout(copyTimeout.current);
       }
-      copyTimeout.current = setTimeout(() => { 
+      copyTimeout.current = setTimeout(() => {
         setCopySuccess(false);
-      }, 2000); 
+      }, 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
-      setCopySuccess(false); 
+      setCopySuccess(false);
     }
   };
-
 
   return (
     <figure className="relative" style={{ paddingBottom: aspectRatio }}>
       <div className="absolute top-2 right-2 z-10 flex flex-col space-y-2">
+
 
         <button
           className="rounded-full p-1 bg-red-200/50 hover:bg-red-300/70 text-red-700 hover:text-red-800 cursor-pointer"
@@ -115,10 +154,10 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
 
         <button
           className="rounded-full p-1 bg-gray-200/50 hover:bg-gray-300/70 text-gray-700 hover:text-gray-800 cursor-pointer"
-          aria-label="Star image"
-          onClick={handleLikeImage}
+          aria-label={isLiked ? "Unlike image" : "Like image"} // Updated aria-label
+          onClick={handleToggleLike} // Changed to toggle function
         >
-          <Bookmark size={23} color={isLiked ? "white" : "currentColor"} />
+          <Heart size={23} color={isLiked ? "red" : "currentColor"} fill={isLiked ? "red" : "none"} /> {/* Changed to Heart and dynamic fill */}
         </button>
 
       </div>
@@ -144,8 +183,8 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
         <figcaption
           className="_12jn0ku0 absolute inset-0 transition-opacity opacity-0 group-hover:opacity-100 text-white pointer-events-none rounded-lg bg-gradient-to-t from-black/60 via-black/40 to-transparent"
         >
-          <div className="absolute bottom-0 left-0 w-full p-4 space-y-4" style={{ fontFamily: "Raleway"}}>
-            <p className="text-white text-base leading-normal _12jn0ku1 overflow-hidden text-ellipsis nika-negative line-clamp-3" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical',}}> 
+          <div className="absolute bottom-0 left-0 w-full p-4 space-y-4" style={{ fontFamily: "Raleway" }}>
+            <p className="text-white text-base leading-normal _12jn0ku1 overflow-hidden text-ellipsis nika-negative line-clamp-3" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', }}>
               {promptText}
             </p>
             <div className="w-full">
@@ -155,7 +194,7 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
                 onClick={handleCopyToClipboard}
               >
                 <Copy size={24} color="#ffffff" />
-                <p className="transition-opacity duration-300">{copySuccess ? "Copied!" : "copy this prompt"}</p> 
+                <p className="transition-opacity duration-300">{copySuccess ? "Copied!" : "copy this prompt"}</p>
                 {copySuccess && (
                   <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-green-500 rounded-full opacity-0 animate-fade-in-out text-white font-bold pointer-events-none">
                     Copied!
@@ -174,7 +213,8 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
         )}
       </a>
     </figure>
-  );
+
+);
 };
 
 export default ImagePromptCard;
