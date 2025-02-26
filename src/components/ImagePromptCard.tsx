@@ -33,7 +33,8 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
   }, [isLikedInitially]);
 
 
-  const handleDeleteImage = async () => {
+  const handleDeleteImage = async (event:React.MouseEvent) => {
+    event.stopPropagation();
     setIsDeleting(true);
     setDeleteError(null);
 
@@ -47,7 +48,8 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
     }
   };
 
-  const handleToggleLike = async () => {
+  const handleToggleLike = async (event: React.MouseEvent) => {
+    event.stopPropagation();
     try {
       await onLikeToggle(image_uuid, isLiked); 
       setIsLiked(!isLiked); 
@@ -59,7 +61,8 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
   };
 
 
-  const handleCopyToClipboard = async () => {
+  const handleCopyToClipboard = async (event:React.MouseEvent) => {
+    event.stopPropagation();
     try {
       await navigator.clipboard.writeText(promptText);
       setCopySuccess(true);
@@ -120,7 +123,7 @@ const ImagePromptCard: React.FC<ImagePromptCardProps> = ({
           }}
           src={image_url}
         />
-
+        
         <figcaption
           className="_12jn0ku0 absolute inset-0 transition-opacity opacity-0 group-hover:opacity-100 text-white pointer-events-none rounded-lg bg-gradient-to-t from-black/60 via-black/40 to-transparent"
         >
